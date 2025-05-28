@@ -17,26 +17,16 @@ Date: 27 May 2025
 using namespace std;
 using namespace chrono;
 
-struct ThreadInfo {
-    string id;
+struct ThreadStruct {
+    string identifier;
     long long time_ms;
 };
 
-void generate_data(const string& file) {
-    ofstream out(file);
-    random_device random_num;
-    mt19937 gen(random_num());
-    uniform_int_distribution<> dist(0, 100);
-    for (int i = 0; i < 1000000; ++i) {
-        out << dist(gen) << "\n";
-    }
-}
-
-void thread_task(ThreadInfo& info) {
+void threading(ThreadStruct& info) {
     auto start = high_resolution_clock::now();
 
     ifstream input_file("Data.txt");
-    ofstream output_file("Data_Thread_" + info.id + ".txt");
+    ofstream output_file("Data_Thread_" + info.identifier + ".txt");
 
     int count, num = 0;
     double total = 0;
@@ -51,23 +41,35 @@ void thread_task(ThreadInfo& info) {
     auto end = high_resolution_clock::now();
     info.time_ms = duration_cast<milliseconds>(end - start).count();
 
-    cout << "Thread " << info.id << ": Average = " << fixed << setprecision(2) << average
-         << ", Time = " << info.time_ms << " ms" << endl;
+    cout << "Thread " << info.identifier << ": Average = " << fixed << setprecision(2) << average
+         << ", " << "\n" <<"Time = " << info.time_ms << " milliseconds" << endl;
 }
+
+void create_data(const string& file) {
+    ofstream out(file);
+    random_device random_num;
+    mt19937 gen(random_num());
+    uniform_int_distribution<> dist(0, 100);
+    for (int i = 0; i < 1000000; ++i) {
+        out << dist(gen) << "\n";
+    }
+}
+
+
 
 
 int main() {
     auto start_time = high_resolution_clock::now();
 
     // Step 1: Generate data
-    generate_data("Data.txt");
+    create_data("Data.txt");
 
     // Step 2: Create threads A, B, C
-    ThreadInfo infoA{"A", 0}, infoB{"B", 0}, infoC{"C", 0};
+    ThreadStruct infoA{"A", 0}, infoB{"B", 0}, infoC{"C", 0};
 
-    thread tA(thread_task, ref(infoA));
-    thread tB(thread_task, ref(infoB));
-    thread tC(thread_task, ref(infoC));
+    thread tA(threading, ref(infoA));
+    thread tB(threading, ref(infoB));
+    thread tC(threading, ref(infoC));
 
     // Step 3: Join threads
     tA.join();
@@ -76,7 +78,7 @@ int main() {
 
     auto end_time = high_resolution_clock::now();
     auto total_time = duration_cast<milliseconds>(end_time - start_time).count();
-    cout << "Main: Total wall-clock time = " << total_time << " ms" << endl;
+    cout << "Main: Total wall-clock time = " << total_time << " milliseconds" << endl;
 
     return 0;
 }
